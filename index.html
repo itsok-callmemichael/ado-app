@@ -587,17 +587,7 @@ textarea { min-height: 100px; resize: vertical; }
 
       <div class="form-group">
         <label class="field-label">Given to me/us by</label>
-        <div class="field-row">
-          <div class="form-group">
-            <input type="text" id="givenByName" placeholder="Name/Title">
-          </div>
-          <div class="form-group">
-            <input type="date" id="givenByDate">
-          </div>
-          <div class="form-group">
-            <input type="time" id="givenByTime">
-          </div>
-        </div>
+        <input type="text" id="givenByName" placeholder="Name/Title">
       </div>
 
       <div class="legal-text">
@@ -613,10 +603,7 @@ textarea { min-height: 100px; resize: vertical; }
     <div class="section-body">
       <div class="form-group">
         <label class="field-label">Supervisor notified:</label>
-        <div class="field-row">
-          <div class="form-group"><input type="text" id="supervisorName" placeholder="Name/Title"></div>
-          <div class="form-group"><input type="datetime-local" id="supervisorDateTime"></div>
-        </div>
+        <input type="text" id="supervisorName" placeholder="Name/Title">
       </div>
       <div class="form-group">
         <label class="field-label">Supervisory response:</label>
@@ -624,10 +611,7 @@ textarea { min-height: 100px; resize: vertical; }
       </div>
       <div class="form-group">
         <label class="field-label">Other person notified:</label>
-        <div class="field-row">
-          <div class="form-group"><input type="text" id="otherPersonName" placeholder="Name/Title"></div>
-          <div class="form-group"><input type="datetime-local" id="otherPersonDateTime"></div>
-        </div>
+        <input type="text" id="otherPersonName" placeholder="Name/Title">
       </div>
       <div class="form-group">
         <label class="field-label">Other person's response:</label>
@@ -1051,7 +1035,6 @@ async function submitForm() {
   const facility = document.getElementById('facility').value || 'Unknown Facility';
   const dateStr = new Date().toLocaleString();
 
-  // Generate PDF using html2canvas + jsPDF
   try {
     const formEl = document.getElementById('formContent');
     const canvas = await html2canvas(formEl, {
@@ -1064,19 +1047,16 @@ async function submitForm() {
     });
 
     const { jsPDF } = window.jspdf;
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const imgWidth = 210; // A4 width in mm
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+    const imgWidth = 210;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pageHeight = 295;
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     let position = 0;
     let remaining = imgHeight;
-    const pageHeight = 295; // A4 height in mm
 
-    // First page
     pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-
-    // Add pages if content is longer than one page
     while (remaining > pageHeight) {
       position -= pageHeight;
       remaining -= pageHeight;
@@ -1084,20 +1064,37 @@ async function submitForm() {
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     }
 
-    const pdfData = pdf.output('datauristring');
+    // Save as base64 string for localStorage
+    const pdfBase64 = pdf.output('datauristring');
 
-    // Save to localStorage
     const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
     archive.unshift({
       id: Date.now(),
       date: dateStr,
       facility: facility,
       nurses: [...nurses],
-      pdf: pdfData
+      pdf: pdfBase64
     });
-    localStorage.setItem('ado_archive', JSON.stringify(archive));
 
-    alert('Form submitted and saved to Archive!');
+    try {
+      localStorage.setItem('ado_archive', JSON.stringify(archive));
+    } catch(storageErr) {
+      // If localStorage is full, still offer the download
+      console.warn('localStorage full, downloading directly');
+    }
+
+    // Auto-download the PDF
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ADO_' + facility.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    alert('Form saved to Archive and PDF downloaded!');
     switchTab('archive');
   } catch (err) {
     alert('Error generating PDF: ' + err.message);
@@ -1148,12 +1145,25 @@ function renderArchive() {
 function downloadArchiveItem(id) {
   const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
   const item = archive.find(a => a.id === id);
-  if (!item) return;
+  if (!item || !item.pdf) return;
 
-  const link = document.createElement('a');
-  link.href = item.pdf;
-  link.download = 'ADO_' + item.facility.replace(/\s+/g, '_') + '_' + item.date.replace(/[\/,:\s]+/g, '-') + '.pdf';
-  link.click();
+  // Convert data URI to blob for reliable mobile download
+  const byteString = atob(item.pdf.split(',')[1]);
+  const mimeString = item.pdf.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([ab], { type: mimeString });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ADO_' + item.facility.replace(/\s+/g, '_') + '_' + item.date.replace(/[\/,:\s]+/g, '-') + '.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function deleteArchiveItem(id) {
