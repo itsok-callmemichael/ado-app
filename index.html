@@ -587,7 +587,20 @@ textarea { min-height: 100px; resize: vertical; }
 
       <div class="form-group">
         <label class="field-label">Given to me/us by</label>
-        <input type="text" id="givenByName" placeholder="Name/Title">
+        <div class="field-row">
+          <div class="form-group">
+            <label class="field-label">Name/Title</label>
+            <input type="text" id="givenByName" placeholder="Name/Title">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Date</label>
+            <input type="date" id="givenByDate">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Time</label>
+            <input type="time" id="givenByTime">
+          </div>
+        </div>
       </div>
 
       <div class="legal-text">
@@ -603,7 +616,16 @@ textarea { min-height: 100px; resize: vertical; }
     <div class="section-body">
       <div class="form-group">
         <label class="field-label">Supervisor notified:</label>
-        <input type="text" id="supervisorName" placeholder="Name/Title">
+        <div class="field-row">
+          <div class="form-group">
+            <label class="field-label">Name/Title</label>
+            <input type="text" id="supervisorName" placeholder="Name/Title">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Date/Time</label>
+            <input type="datetime-local" id="supervisorDateTime">
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label class="field-label">Supervisory response:</label>
@@ -611,7 +633,16 @@ textarea { min-height: 100px; resize: vertical; }
       </div>
       <div class="form-group">
         <label class="field-label">Other person notified:</label>
-        <input type="text" id="otherPersonName" placeholder="Name/Title">
+        <div class="field-row">
+          <div class="form-group">
+            <label class="field-label">Name/Title</label>
+            <input type="text" id="otherPersonName" placeholder="Name/Title">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Date/Time</label>
+            <input type="datetime-local" id="otherPersonDateTime">
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label class="field-label">Other person's response:</label>
