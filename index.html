@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Assignment Despite Objection</title>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --primary-color: #CC0000;
+  --primary-dark: #990000;
+  --primary-light: #FF3333;
+  --accent-color: #333333;
+  --bg-color: #F5F5F5;
+  --card-bg: #FFFFFF;
+  --text-color: #222222;
+  --text-muted: #666666;
+  --border-color: #DDDDDD;
+  --success-color: #28a745;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  background: var(--primary-dark);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px 8px;
+  border: none;
+  background: var(--primary-dark);
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+  background: var(--primary-color);
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Header */
+.form-header {
+  background: var(--primary-color);
+  color: white;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.form-header h1 {
+  font-size: 20px;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.form-header h2 {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.form-intro {
+  background: #FFF3CD;
+  border-left: 4px solid #FFC107;
+  padding: 12px 16px;
+  margin: 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #856404;
+}
+
+/* Sections */
+.section {
+  background: var(--card-bg);
+  margin: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.section-header {
+  background: var(--accent-color);
+  color: white;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.section-header small {
+  font-weight: 400;
+  opacity: 0.8;
+  font-size: 12px;
+  display: block;
+}
+
+.section-body { padding: 16px; }
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child { margin-bottom: 0; }
+
+label.field-label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--accent-color);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: var(--font-family);
+  background: #FAFAFA;
+  transition: border-color 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: #fff;
+}
+
+textarea { min-height: 100px; resize: vertical; }
+
+/* Inline fields */
+.field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field-row .form-group { flex: 1; min-width: 140px; }
+
+/* Nurse tags */
+.nurse-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.nurse-tag {
+  background: var(--primary-color);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nurse-tag .remove-nurse {
+  background: rgba(255,255,255,0.3);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-nurse-row {
+  display: flex;
+  gap: 8px;
+}
+
+.add-nurse-row input { flex: 1; }
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-secondary {
+  background: var(--accent-color);
+  color: white;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Checkboxes */
+.checkbox-group { margin-bottom: 8px; }
+
+.checkbox-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  min-height: 44px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  margin-top: 2px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.checkbox-nested {
+  margin-left: 32px;
+  border-left: 2px solid var(--border-color);
+  padding-left: 12px;
+}
+
+/* Radio groups */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.radio-item input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.radio-item label {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Yes/No inline */
+.yn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.yn-row:last-child { border-bottom: none; }
+
+.yn-label { font-size: 14px; font-weight: 500; flex: 1; }
+
+.yn-options {
+  display: flex;
+  gap: 16px;
+}
+
+/* Number inputs row */
+.count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.count-row:last-child { border-bottom: none; }
+
+.count-row label { font-size: 14px; flex: 1; }
+
+.count-row input[type="number"] {
+  width: 80px;
+  text-align: center;
+  padding: 8px;
+}
+
+/* Signature */
+.sig-block {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #FAFAFA;
+}
+
+.sig-block h4 {
+  margin-bottom: 8px;
+  color: var(--accent-color);
+}
+
+.sig-canvas-wrap {
+  border: 2px dashed var(--border-color);
+  border-radius: 6px;
+  background: white;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.sig-canvas-wrap canvas {
+  width: 100%;
+  height: 150px;
+  display: block;
+  touch-action: none;
+}
+
+.sig-timestamp {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sig-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Legal text */
+.legal-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  padding: 12px;
+  background: #F8F9FA;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+/* Action buttons at bottom */
+.form-actions {
+  padding: 16px 12px 32px;
+  display: flex;
+  gap: 12px;
+}
+
+.form-actions .btn { flex: 1; justify-content: center; }
+
+/* Instructions tab */
+.instructions-content {
+  padding: 16px;
+}
+
+.instructions-content h2 {
+  color: var(--primary-color);
+  margin: 24px 0 12px;
+  font-size: 18px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 6px;
+}
+
+.instructions-content h2:first-child { margin-top: 0; }
+
+.instructions-content h3 {
+  color: var(--accent-color);
+  margin: 16px 0 8px;
+  font-size: 15px;
+}
+
+.instructions-content p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.instructions-content ul {
+  margin: 8px 0 12px 20px;
+  font-size: 14px;
+}
+
+.instructions-content li { margin-bottom: 6px; line-height: 1.5; }
+
+.office-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.office-card h4 {
+  color: var(--primary-color);
+  margin-bottom: 4px;
+}
+
+.office-card p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Archive tab */
+.archive-content { padding: 16px; }
+
+.archive-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.archive-empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+.archive-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.archive-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.archive-item-info h4 { font-size: 14px; margin-bottom: 2px; }
+.archive-item-info p { font-size: 12px; color: var(--text-muted); margin: 0; }
+
+.archive-item-actions { display: flex; gap: 8px; }
+
+.archive-delete {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Utility */
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.text-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- Tab Navigation -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('form')">ADO Form</button>
+  <button class="tab-btn" onclick="switchTab('instructions')">Instructions</button>
+  <button class="tab-btn" onclick="switchTab('archive')">Archive</button>
+</nav>
+
+<!-- ==================== ADO FORM TAB ==================== -->
+<div id="tab-form" class="tab-content active">
+
+  <div class="form-header">
+    <h1>CALIFORNIA</h1>
+    <h2>Assignment Despite Objection / OutPatient</h2>
+  </div>
+
+  <div class="form-intro">
+    You must first <strong>verbally</strong> protest your assignment to your supervisor at the time you believe it is unsafe. This is usually at the start of the shift, but might occur at any time. If your supervisor does not make a satisfactory adjustment to the assignment, complete this form to the best of your knowledge and distribute the ADO copies according to the instructions on the reverse side.
+  </div>
+
+  <div id="formContent">
+
+  <!-- SECTION I -->
+  <div class="section">
+    <div class="section-header">SECTION I</div>
+    <div class="section-body">
+
+      <div class="form-group">
+        <label class="field-label">I/We (Registered Nurse Names)</label>
+        <div id="nurseList" class="nurse-list"></div>
+        <div class="add-nurse-row">
+          <input type="text" id="nurseNameInput" placeholder="Enter nurse name">
+          <button class="btn btn-primary btn-sm" onclick="addNurse()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Registered nurse(s) employed at</label>
+        <div class="field-row">
+          <div class="form-group">
+            <input type="text" id="facility" placeholder="Facility">
+          </div>
+          <div class="form-group">
+            <input type="text" id="unitDept" placeholder="Unit/Dept">
+          </div>
+          <div class="form-group">
+            <input type="text" id="shift" placeholder="Shift">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Hereby protest my/our assignment as:</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item"><input type="checkbox" id="role1"><label for="role1">Telephone Advice RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role2"><label for="role2">Nurse Practitioner</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role3"><label for="role3">OutPatient OR RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role4"><label for="role4">Station RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role5"><label for="role5">Injection RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role6"><label for="role6">Recovery Room RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role7"><label for="role7">Charge RN/Team Leader RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role8"><label for="role8">Emergency Dept. RN</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role9"><label for="role9">Operating Room RN</label></div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="role10"><label for="role10">Other RN:</label>
+            <input type="text" id="roleOther" placeholder="Specify" style="flex:1;margin-left:8px;padding:8px;">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Given to me/us by</label>
+        <div class="field-row">
+          <div class="form-group">
+            <input type="text" id="givenByName" placeholder="Name/Title">
+          </div>
+          <div class="form-group">
+            <input type="date" id="givenByDate">
+          </div>
+          <div class="form-group">
+            <input type="time" id="givenByTime">
+          </div>
+        </div>
+      </div>
+
+      <div class="legal-text">
+        As a patient advocate, in accordance with the <strong>California Nursing Practice Act</strong>, this is to confirm that I/we notified you that, in my/our professional judgment, today's assignment is unsafe and places my/our patients at risk. As a result, the facility is responsible for any adverse effects on patient care. I/we will, under protest, attempt to carry out the assignment to the best of my/our ability.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION II -->
+  <div class="section">
+    <div class="section-header">SECTION II - Action</div>
+    <div class="section-body">
+      <div class="form-group">
+        <label class="field-label">Supervisor notified:</label>
+        <div class="field-row">
+          <div class="form-group"><input type="text" id="supervisorName" placeholder="Name/Title"></div>
+          <div class="form-group"><input type="datetime-local" id="supervisorDateTime"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Supervisory response:</label>
+        <textarea id="supervisorResponse" placeholder="Enter supervisor's response"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Other person notified:</label>
+        <div class="field-row">
+          <div class="form-group"><input type="text" id="otherPersonName" placeholder="Name/Title"></div>
+          <div class="form-group"><input type="datetime-local" id="otherPersonDateTime"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Other person's response:</label>
+        <textarea id="otherPersonResponse" placeholder="Enter response"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION IIIa -->
+  <div class="section">
+    <div class="section-header">
+      SECTION IIIa
+      <small>See Title 22 and Title 16 provisions in Instructions tab</small>
+    </div>
+    <div class="section-body">
+      <p class="mb-8" style="font-weight:600;font-size:14px;">I am objecting to the aforementioned assignment on the grounds that: <em>(check all that apply)</em></p>
+
+      <div class="checkbox-group">
+        <div class="checkbox-item"><input type="checkbox" id="obj1"><label for="obj1">I was given an assignment where I did not receive or complete:</label></div>
+        <div class="checkbox-nested">
+          <div class="checkbox-item"><input type="checkbox" id="obj1a"><label for="obj1a">orientation to the unit</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj1b"><label for="obj1b">training to competently perform my assigned duties and responsibilities</label></div>
+        </div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj2"><label for="obj2">I don't have current demonstrated competency</label></div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj3"><label for="obj3">I was given an assignment which posed a threat to the health and safety of my patients (explain in Section VI)</label></div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj4"><label for="obj4">Staffing/skill mix is/was insufficient to:</label></div>
+        <div class="checkbox-nested">
+          <div class="checkbox-item"><input type="checkbox" id="obj4a"><label for="obj4a">meet the individual patient care needs/requirements of my patients</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj4b"><label for="obj4b">perform effective assessments of patients assigned to me</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj4c"><label for="obj4c">meet the teaching/discharge needs identified by my patient's condition</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj4d"><label for="obj4d">document during the shift leading to documenting post-shift</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj4e"><label for="obj4e">provide breaks by a direct-care RN to prevent fatigue, accidents, and/or errors</label></div>
+        </div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj5"><label for="obj5">The unit is/was staffed with unqualified:</label></div>
+        <div class="checkbox-nested">
+          <div class="checkbox-item"><input type="checkbox" id="obj5a"><label for="obj5a">licensed</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj5b"><label for="obj5b">unlicensed</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj5c"><label for="obj5c">certified staff</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="obj5d"><label for="obj5d">personnel whose competency was not communicated to me</label></div>
+        </div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj6"><label for="obj6">Direct patient care duties did not allow time for charge nurse duties, e.g. clinical supervision/coordination of care</label></div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj7"><label for="obj7">New patients were transferred or admitted to unit without adequate staff</label></div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj8"><label for="obj8">I was forced to work beyond my scheduled hours, e.g. mandatory overtime</label></div>
+
+        <div class="checkbox-item"><input type="checkbox" id="obj9"><label for="obj9">Other (explain in Section VI)</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION IIIb -->
+  <div class="section">
+    <div class="section-header">SECTION IIIb - Working Conditions</div>
+    <div class="section-body">
+      <div class="yn-row">
+        <span class="yn-label">Meal period missed?</span>
+        <div class="yn-options">
+          <div class="radio-item"><input type="radio" name="meal" id="mealY" value="yes"><label for="mealY">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="meal" id="mealN" value="no"><label for="mealN">No</label></div>
+        </div>
+      </div>
+      <div class="yn-row">
+        <span class="yn-label">Break missed?</span>
+        <div class="yn-options">
+          <div class="radio-item"><input type="radio" name="break" id="breakY" value="yes"><label for="breakY">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="break" id="breakN" value="no"><label for="breakN">No</label></div>
+        </div>
+      </div>
+      <div class="yn-row">
+        <span class="yn-label">Overtime worked?</span>
+        <div class="yn-options">
+          <div class="radio-item"><input type="radio" name="overtime" id="otY" value="yes"><label for="otY">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="overtime" id="otN" value="no"><label for="otN">No</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION IV -->
+  <div class="section">
+    <div class="section-header">SECTION IV - Type of Unit</div>
+    <div class="section-body">
+      <div class="form-group">
+        <label class="field-label">Type of unit:</label>
+        <input type="text" id="unitType" placeholder="Enter unit type">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Patient classification system name:</label>
+        <input type="text" id="patientClass" placeholder="Enter classification system">
+      </div>
+      <div class="field-row">
+        <div class="form-group">
+          <label class="field-label">Census:</label>
+          <input type="number" id="census" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Acuity:</label>
+          <div class="radio-group">
+            <div class="radio-item"><input type="radio" name="acuity" id="acLow" value="Low"><label for="acLow">Low</label></div>
+            <div class="radio-item"><input type="radio" name="acuity" id="acMed" value="Medium"><label for="acMed">Medium</label></div>
+            <div class="radio-item"><input type="radio" name="acuity" id="acHigh" value="High"><label for="acHigh">High</label></div>
+            <div class="radio-item"><input type="radio" name="acuity" id="acExt" value="Extreme"><label for="acExt">Extreme</label></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group mt-16">
+        <label class="field-label">Staffing system variance:</label>
+        <textarea id="staffVariance" placeholder="Difference between patient acuity and actual staff provided" rows="2"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION V -->
+  <div class="section">
+    <div class="section-header">SECTION V - Patient Care Staffing Count</div>
+    <div class="section-body">
+      <div class="count-row">
+        <label>Number of RNs:</label>
+        <input type="number" id="numRNs" min="0" placeholder="0">
+      </div>
+      <div class="count-row">
+        <label>Number of LVNs:</label>
+        <input type="number" id="numLVNs" min="0" placeholder="0">
+      </div>
+      <div class="count-row">
+        <label>Number of MAs:</label>
+        <input type="number" id="numMAs" min="0" placeholder="0">
+      </div>
+      <div class="count-row">
+        <label>Number of Aides:</label>
+        <input type="number" id="numAides" min="0" placeholder="0">
+      </div>
+
+      <div class="mt-16">
+        <div class="yn-row">
+          <span class="yn-label">Clerk?</span>
+          <div class="yn-options">
+            <div class="radio-item"><input type="radio" name="clerk" id="clerkY" value="yes"><label for="clerkY">Yes</label></div>
+            <div class="radio-item"><input type="radio" name="clerk" id="clerkN" value="no"><label for="clerkN">No</label></div>
+          </div>
+        </div>
+        <div class="yn-row">
+          <span class="yn-label">Lift team?</span>
+          <div class="yn-options">
+            <div class="radio-item"><input type="radio" name="lift" id="liftY" value="yes"><label for="liftY">Yes</label></div>
+            <div class="radio-item"><input type="radio" name="lift" id="liftN" value="no"><label for="liftN">No</label></div>
+          </div>
+        </div>
+        <div class="yn-row">
+          <span class="yn-label">Transport?</span>
+          <div class="yn-options">
+            <div class="radio-item"><input type="radio" name="transport" id="transY" value="yes"><label for="transY">Yes</label></div>
+            <div class="radio-item"><input type="radio" name="transport" id="transN" value="no"><label for="transN">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION VI -->
+  <div class="section">
+    <div class="section-header">SECTION VI - Brief Problem Statement</div>
+    <div class="section-body">
+      <textarea id="problemStatement" rows="5" placeholder="Describe the problem..."></textarea>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">(If more space is needed, attach additional information and make four copies to distribute)</p>
+    </div>
+  </div>
+
+  <!-- SECTION VII -->
+  <div class="section">
+    <div class="section-header">
+      SECTION VII
+      <small>Complete this section as appropriate. This may need to be filled out immediately at the end of your shift, if appropriate.</small>
+    </div>
+    <div class="section-body">
+      <p class="mb-8" style="font-size:14px;color:var(--text-muted);">Patient care affected. Nursing care not done/not done effectively, e.g. assessment, evaluation, personal care, treatments, teaching, charge duties, transfers/admissions delayed, etc. Potential/actual hazard that resulted from this situation:</p>
+      <textarea id="patientCareAffected" rows="5" placeholder="Describe patient care impact..."></textarea>
+    </div>
+  </div>
+
+  <!-- SIGNATURES -->
+  <div class="section">
+    <div class="section-header">Signatures</div>
+    <div class="section-body">
+      <div id="signatureArea">
+        <p style="color:var(--text-muted);font-size:14px;">Add nurses in Section I to generate signature areas.</p>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end formContent -->
+
+  <!-- Action Buttons -->
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="submitForm()">Submit & Save</button>
+    <button class="btn btn-danger" onclick="clearForm()">Clear Form</button>
+  </div>
+
+</div>
+
+<!-- ==================== INSTRUCTIONS TAB ==================== -->
+<div id="tab-instructions" class="tab-content">
+  <div class="form-header">
+    <h1>Instructions</h1>
+    <h2>Assignment Despite Objection Form</h2>
+  </div>
+  <div class="instructions-content">
+    <h2>Purpose</h2>
+    <p>The purpose of this enforcement document/form is to notify hospital supervision that you have been given an assignment which in your independent professional judgment is unsafe for your patients. This form will document the situation. CNA/NNU Professional Practice Committee (PPC) will use it to facilitate resolution of the problem.</p>
+
+    <h2>How to Complete</h2>
+    <p>One or more RNs may complete this form. Check all appropriate boxes, more than one may apply. Please do not forget to complete name of your unit/department and title of person making assignment. Complete to the best of your knowledge. Mark the census at the time of your objection. Check acuity box you think is appropriate. We need your assessment.</p>
+    <p>Complete Section VI to explain the potential threat to the health and safety of your patient(s) or if you think the situation cannot be explained in Section III, or if you think additional information is relevant.</p>
+    <p>You must notify your supervisor or the "person in charge," not the charge nurse. Please complete both name and title of the supervisor. Please complete the section labeled supervisory response. Please complete the section, "Other persons notified," if you notified the staffing office, a physician, or any other person.</p>
+
+    <h2>Distribution</h2>
+    <p><strong>Copy #1:</strong> Give to your supervisor.</p>
+    <p><strong>Copy #2:</strong> Give to your facility CNA/NNU PPC.</p>
+    <p><strong>Copy #3:</strong> Send to your labor representative at their office (addresses below).</p>
+    <p><strong>Copy #4:</strong> Retain for yourself.</p>
+
+    <h2>Title 22, Division 5</h2>
+    <h3>Section 75028 - Basic Services: Nursing Staff</h3>
+    <p>(a) Every medical clinic shall employ a registered nurse responsible for nursing services.</p>
+    <p>(b) A licensed nurse shall be present whenever nursing services are provided.</p>
+    <p>(c) Qualified nursing personnel shall be employed to meet the needs of the particular clinic. The number and type of patients shall be taken into consideration.</p>
+    <p>(d) Employees of the medical clinic who provide direct patient care shall be under the supervision of a registered nurse or physician.</p>
+    <p>(e) Where a medical clinic demonstrates to the Department that a registered nurse cannot be recruited, the clinic may request approval from the Department to designate a licensed vocational nurse to be responsible for nursing services, with a provision for consultation from a registered nurse.</p>
+
+    <h3>Section 75029 - Basic Services: Other Health Personnel</h3>
+    <p>(a) Health personnel shall be employed to furnish the preventive, diagnostic and therapeutic services prescribed for patients accepted for care by the clinic. Such health personnel shall be qualified in accordance with current legal, professional and technical standards and shall be appropriately licensed, registered or certified where required.</p>
+    <p>(b) The professional director shall ensure that, in addition to meeting the licensing, certification or other legal requirements, all health personnel are qualified by training and experience to perform those services they are assigned to provide.</p>
+
+    <h2>Title 16, Chapter 14 - 1443.5</h2>
+    <h3>Standards of Competent Performance</h3>
+    <p>A registered nurse shall be considered to be competent when he/she consistently demonstrates the ability to transfer scientific knowledge from social, biological and physical sciences in applying the nursing process, as follows:</p>
+    <ul>
+      <li>Formulates a nursing diagnosis through observation of the client's physical condition and behavior, and through interpretation of information obtained from the client and others, including the health team.</li>
+      <li>Formulates a care plan, in collaboration with the client, which ensures that direct and indirect nursing care services provide for the client's safety, comfort, hygiene, and protection, and for disease prevention and restorative measures.</li>
+      <li>Performs skills essential to the kind of nursing action to be taken, explains the health treatment to the client and family and teaches the client and family how to care for the client's health needs.</li>
+      <li>Delegates tasks to subordinates based on the legal scopes of practice of the subordinates and on the preparation and capability needed in the tasks to be delegated, and effectively supervises nursing care being given by subordinates.</li>
+      <li>Evaluates the effectiveness of the care plan through observation of the client's physical condition and behavior, signs and symptoms of illness, and reactions to treatment and through communication with the client and the health team members, and modifies the plan as needed.</li>
+      <li>Acts as the client's advocate, as circumstances require by initiating action to improve healthcare or to change decisions or activities which are against the interests or wishes of the client, and by giving the client the opportunity to make informed decisions about healthcare before it is provided.</li>
+    </ul>
+
+    <h2>CNA/NNU Office Addresses</h2>
+    <p>Send Copy #3 to your CNA/NNU labor representative at their office:</p>
+
+    <div class="office-card">
+      <h4>Oakland</h4>
+      <p>155 Grand Ave., Suite 100<br>Oakland, CA 94612<br>510-273-2200</p>
+    </div>
+    <div class="office-card">
+      <h4>Sacramento</h4>
+      <p>980 9th Street, Suite 700<br>Sacramento, CA 95814<br>916-446-5021</p>
+    </div>
+    <div class="office-card">
+      <h4>San Jose</h4>
+      <p>1871 The Alameda, Suite 300<br>San Jose, CA 95126<br>408-920-0290</p>
+    </div>
+    <div class="office-card">
+      <h4>Fresno</h4>
+      <p>7575 N. Del Mar Ave., Suite 103<br>Fresno, CA 93711<br>559-437-9996</p>
+    </div>
+    <div class="office-card">
+      <h4>Los Angeles</h4>
+      <p>225 W. Broadway, Suite 500<br>Glendale, CA 91204<br>818-240-1900</p>
+    </div>
+    <div class="office-card">
+      <h4>San Diego</h4>
+      <p>3160 Camino del Rio S., Suite 301<br>San Diego, CA 92108<br>619-516-4917</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ARCHIVE TAB ==================== -->
+<div id="tab-archive" class="tab-content">
+  <div class="form-header">
+    <h1>Archive</h1>
+    <h2>Submitted ADO Forms</h2>
+  </div>
+  <div class="archive-content" id="archiveList">
+    <div class="archive-empty">
+      <div class="icon">📋</div>
+      <p>No submitted forms yet.<br>Completed forms will appear here.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== STATE ==========
+let nurses = [];
+let signaturePads = {};
+
+// ========== TAB SWITCHING ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(tab === 'form' ? 'ado' : tab)) b.classList.add('active');
+  });
+  if (tab === 'archive') renderArchive();
+  if (tab === 'form') setTimeout(resizeSignatureCanvases, 100);
+}
+
+// ========== NURSE MANAGEMENT ==========
+function addNurse() {
+  const input = document.getElementById('nurseNameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (nurses.includes(name)) { alert('Nurse already added.'); return; }
+  nurses.push(name);
+  input.value = '';
+  renderNurses();
+  renderSignatures();
+}
+
+document.getElementById('nurseNameInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); addNurse(); }
+});
+
+function removeNurse(index) {
+  const name = nurses[index];
+  nurses.splice(index, 1);
+  delete signaturePads[name];
+  renderNurses();
+  renderSignatures();
+}
+
+function renderNurses() {
+  const list = document.getElementById('nurseList');
+  if (nurses.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = nurses.map((n, i) =>
+    '<div class="nurse-tag">' + escapeHtml(n) +
+    '<button class="remove-nurse" onclick="removeNurse(' + i + ')">✕</button></div>'
+  ).join('');
+}
+
+// ========== SIGNATURES ==========
+function renderSignatures() {
+  const area = document.getElementById('signatureArea');
+  if (nurses.length === 0) {
+    area.innerHTML = '<p style="color:var(--text-muted);font-size:14px;">Add nurses in Section I to generate signature areas.</p>';
+    return;
+  }
+  area.innerHTML = nurses.map(name => {
+    const id = 'sig-' + name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+    return '<div class="sig-block" data-nurse="' + escapeHtml(name) + '">' +
+      '<h4>' + escapeHtml(name) + '</h4>' +
+      '<div class="sig-canvas-wrap"><canvas id="' + id + '"></canvas></div>' +
+      '<div class="sig-timestamp" id="ts-' + id + '"></div>' +
+      '<div class="sig-actions">' +
+      '<button class="btn btn-outline btn-sm" onclick="clearSignature(\'' + id + '\')">Clear Signature</button>' +
+      '</div></div>';
+  }).join('');
+
+  // Initialize signature pads
+  setTimeout(() => {
+    nurses.forEach(name => {
+      const id = 'sig-' + name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      resizeCanvas(canvas);
+      const pad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255,255,255)',
+        penColor: 'rgb(0,0,0)'
+      });
+      pad.addEventListener('endStroke', () => {
+        const ts = document.getElementById('ts-' + id);
+        ts.textContent = 'Signed: ' + new Date().toLocaleString();
+      });
+      signaturePads[name] = { pad, id };
+    });
+  }, 50);
+}
+
+function clearSignature(id) {
+  const entry = Object.values(signaturePads).find(s => s.id === id);
+  if (entry) {
+    entry.pad.clear();
+    document.getElementById('ts-' + id).textContent = '';
+  }
+}
+
+function resizeCanvas(canvas) {
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * ratio;
+  canvas.height = rect.height * ratio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(ratio, ratio);
+}
+
+function resizeSignatureCanvases() {
+  Object.values(signaturePads).forEach(({ pad, id }) => {
+    const canvas = document.getElementById(id);
+    if (canvas) {
+      const data = pad.toData();
+      resizeCanvas(canvas);
+      pad.fromData(data);
+    }
+  });
+}
+
+window.addEventListener('resize', resizeSignatureCanvases);
+
+// ========== FORM SUBMISSION ==========
+async function submitForm() {
+  if (nurses.length === 0) {
+    alert('Please add at least one nurse in Section I.');
+    return;
+  }
+
+  const facility = document.getElementById('facility').value || 'Unknown Facility';
+  const dateStr = new Date().toLocaleString();
+
+  // Generate PDF using html2canvas + jsPDF
+  try {
+    const formEl = document.getElementById('formContent');
+    const canvas = await html2canvas(formEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollY: -window.scrollY,
+      windowWidth: formEl.scrollWidth,
+      windowHeight: formEl.scrollHeight
+    });
+
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let position = 0;
+    let remaining = imgHeight;
+    const pageHeight = 295; // A4 height in mm
+
+    // First page
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+
+    // Add pages if content is longer than one page
+    while (remaining > pageHeight) {
+      position -= pageHeight;
+      remaining -= pageHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    }
+
+    const pdfData = pdf.output('datauristring');
+
+    // Save to localStorage
+    const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
+    archive.unshift({
+      id: Date.now(),
+      date: dateStr,
+      facility: facility,
+      nurses: [...nurses],
+      pdf: pdfData
+    });
+    localStorage.setItem('ado_archive', JSON.stringify(archive));
+
+    alert('Form submitted and saved to Archive!');
+    switchTab('archive');
+  } catch (err) {
+    alert('Error generating PDF: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ========== CLEAR FORM ==========
+function clearForm() {
+  if (!confirm('Are you sure you want to clear the entire form? This cannot be undone.')) return;
+
+  // Clear all inputs
+  document.querySelectorAll('#tab-form input[type="text"], #tab-form input[type="number"], #tab-form input[type="date"], #tab-form input[type="time"], #tab-form input[type="datetime-local"], #tab-form textarea').forEach(el => el.value = '');
+  document.querySelectorAll('#tab-form input[type="checkbox"]').forEach(el => el.checked = false);
+  document.querySelectorAll('#tab-form input[type="radio"]').forEach(el => el.checked = false);
+
+  // Clear nurses
+  nurses = [];
+  signaturePads = {};
+  renderNurses();
+  renderSignatures();
+}
+
+// ========== ARCHIVE ==========
+function renderArchive() {
+  const list = document.getElementById('archiveList');
+  const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
+
+  if (archive.length === 0) {
+    list.innerHTML = '<div class="archive-empty"><div class="icon">📋</div><p>No submitted forms yet.<br>Completed forms will appear here.</p></div>';
+    return;
+  }
+
+  list.innerHTML = archive.map(item =>
+    '<div class="archive-item" onclick="downloadArchiveItem(' + item.id + ')">' +
+    '<div class="archive-item-info">' +
+    '<h4>' + escapeHtml(item.facility) + '</h4>' +
+    '<p>' + escapeHtml(item.date) + '</p>' +
+    '<p>' + escapeHtml(item.nurses.join(', ')) + '</p>' +
+    '</div>' +
+    '<div class="archive-item-actions">' +
+    '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();downloadArchiveItem(' + item.id + ')">📥 PDF</button>' +
+    '<button class="archive-delete" onclick="event.stopPropagation();deleteArchiveItem(' + item.id + ')" title="Delete">🗑️</button>' +
+    '</div></div>'
+  ).join('');
+}
+
+function downloadArchiveItem(id) {
+  const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
+  const item = archive.find(a => a.id === id);
+  if (!item) return;
+
+  const link = document.createElement('a');
+  link.href = item.pdf;
+  link.download = 'ADO_' + item.facility.replace(/\s+/g, '_') + '_' + item.date.replace(/[\/,:\s]+/g, '-') + '.pdf';
+  link.click();
+}
+
+function deleteArchiveItem(id) {
+  if (!confirm('Delete this archived form?')) return;
+  let archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
+  archive = archive.filter(a => a.id !== id);
+  localStorage.setItem('ado_archive', JSON.stringify(archive));
+  renderArchive();
+}
+
+// ========== UTILITY ==========
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
