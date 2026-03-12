@@ -1063,63 +1063,501 @@ async function submitForm() {
     return;
   }
 
-  const facility = document.getElementById('facility').value || 'Unknown Facility';
+  const facility = document.getElementById('facility').value || '';
+  const unitDept = document.getElementById('unitDept').value || '';
+  const shift = document.getElementById('shift').value || '';
   const dateStr = new Date().toLocaleString();
 
   try {
-    const formEl = document.getElementById('formContent');
-    const canvas = await html2canvas(formEl, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      scrollY: -window.scrollY,
-      windowWidth: formEl.scrollWidth,
-      windowHeight: formEl.scrollHeight
-    });
-
     const { jsPDF } = window.jspdf;
-    const imgData = canvas.toDataURL('image/jpeg', 0.85);
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pageHeight = 295;
+    // Legal size: 215.9 x 355.6 mm
+    const pdf = new jsPDF('p', 'mm', [215.9, 355.6]);
+    const W = 215.9;
+    const H = 355.6;
+    const M = 10; // margin
+    const CW = W - 2 * M; // content width
+    let y = M;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    let position = 0;
-    let remaining = imgHeight;
+    // Colors
+    const BLACK = [0, 0, 0];
+    const GRAY = [100, 100, 100];
 
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    while (remaining > pageHeight) {
-      position -= pageHeight;
-      remaining -= pageHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    function setFont(style, size) {
+      pdf.setFontSize(size);
+      if (style === 'bold') pdf.setFont('helvetica', 'bold');
+      else if (style === 'italic') pdf.setFont('helvetica', 'italic');
+      else if (style === 'bolditalic') pdf.setFont('helvetica', 'bolditalic');
+      else pdf.setFont('helvetica', 'normal');
     }
 
-    // Save as base64 string for localStorage
+    function drawLine(x1, y1, x2, y2, width) {
+      pdf.setLineWidth(width || 0.3);
+      pdf.line(x1, y1, x2, y2);
+    }
+
+    function checkbox(x, cy, checked) {
+      const s = 3;
+      pdf.setLineWidth(0.3);
+      pdf.rect(x, cy - s/2, s, s);
+      if (checked) {
+        pdf.setLineWidth(0.5);
+        pdf.line(x, cy - s/2, x + s, cy + s/2);
+        pdf.line(x + s, cy - s/2, x, cy + s/2);
+      }
+      return x + s + 1.5;
+    }
+
+    function getRadio(name) {
+      const el = document.querySelector('input[name="' + name + '"]:checked');
+      return el ? el.value : '';
+    }
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+    }
+
+    function isChecked(id) {
+      const el = document.getElementById(id);
+      return el ? el.checked : false;
+    }
+
+    function wrapText(text, maxWidth, fontSize) {
+      setFont('normal', fontSize);
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (pdf.getTextWidth(test) > maxWidth) {
+          if (line) lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    // ===== HEADER =====
+    setFont('bold', 14);
+    pdf.text('CALIFORNIA', W / 2, y + 5, { align: 'center' });
+    setFont('bold', 10);
+    pdf.text('Assignment Despite Objection / OutPatient', W / 2, y + 10, { align: 'center' });
+    setFont('normal', 7);
+    pdf.text('California Nurses Association / National Nurses United', W / 2, y + 14, { align: 'center' });
+    y += 17;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 2;
+
+    // Intro text
+    setFont('normal', 6.5);
+    const introText = 'You must first verbally protest your assignment to your supervisor at the time you believe it is unsafe. This is usually at the start of the shift, but might occur at any time. If your supervisor does not make a satisfactory adjustment to the assignment, complete this form to the best of your knowledge and distribute the ADO copies according to the instructions on the reverse side.';
+    const introLines = wrapText(introText, CW, 6.5);
+    for (const line of introLines) {
+      pdf.text(line, M, y + 3);
+      y += 3;
+    }
+    y += 1;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION I =====
+    setFont('bold', 9);
+    pdf.text('SECTION I', M, y);
+    y += 4;
+
+    setFont('normal', 8);
+    pdf.text('I/We', M, y);
+    setFont('normal', 8);
+    const nurseStr = nurses.join(', ');
+    pdf.text(nurseStr, M + 12, y);
+    drawLine(M + 12, y + 1, W - M, y + 1, 0.2);
+    y += 5;
+
+    pdf.text('Registered nurse(s) employed at', M, y);
+    y += 4;
+    setFont('normal', 7);
+    // Facility / Unit / Shift on one line
+    const thirdW = (CW - 10) / 3;
+    pdf.text('Facility:', M, y);
+    pdf.text(facility, M + 14, y);
+    drawLine(M + 14, y + 1, M + thirdW, y + 1, 0.2);
+
+    pdf.text('Unit/Dept:', M + thirdW + 5, y);
+    pdf.text(unitDept, M + thirdW + 20, y);
+    drawLine(M + thirdW + 20, y + 1, M + 2 * thirdW + 5, y + 1, 0.2);
+
+    pdf.text('Shift:', M + 2 * thirdW + 10, y);
+    pdf.text(shift, M + 2 * thirdW + 20, y);
+    drawLine(M + 2 * thirdW + 20, y + 1, W - M, y + 1, 0.2);
+    y += 5;
+
+    // Role checkboxes
+    setFont('normal', 7);
+    pdf.text('Hereby protest my/our assignment as:', M, y);
+    y += 3.5;
+
+    const roles = [
+      ['role1', 'Telephone Advice RN'], ['role2', 'Nurse Practitioner'],
+      ['role3', 'OutPatient OR RN'], ['role4', 'Station RN'],
+      ['role5', 'Injection RN'], ['role6', 'Recovery Room RN'],
+      ['role7', 'Charge RN/Team Leader RN'], ['role8', 'Emergency Dept. RN'],
+      ['role9', 'Operating Room RN']
+    ];
+
+    let rx = M;
+    for (const [id, label] of roles) {
+      const labelW = pdf.getTextWidth(label) + 6;
+      if (rx + labelW > W - M) {
+        y += 4;
+        rx = M;
+      }
+      const nx = checkbox(rx, y, isChecked(id));
+      pdf.text(label, nx, y + 1);
+      rx = nx + pdf.getTextWidth(label) + 3;
+    }
+    // Other
+    y += 4;
+    const onx = checkbox(M, y, isChecked('role10'));
+    pdf.text('Other RN: ' + getVal('roleOther'), onx, y + 1);
+    y += 4;
+
+    // Given to me/us by
+    pdf.text('given to me/us by', M, y);
+    y += 4;
+    pdf.text('Name/Title:', M, y);
+    pdf.text(getVal('givenByName'), M + 20, y);
+    drawLine(M + 20, y + 1, M + CW * 0.5, y + 1, 0.2);
+    pdf.text('Date:', M + CW * 0.55, y);
+    pdf.text(getVal('givenByDate'), M + CW * 0.65, y);
+    drawLine(M + CW * 0.65, y + 1, M + CW * 0.8, y + 1, 0.2);
+    pdf.text('Time:', M + CW * 0.82, y);
+    pdf.text(getVal('givenByTime'), M + CW * 0.9, y);
+    drawLine(M + CW * 0.9, y + 1, W - M, y + 1, 0.2);
+    y += 4;
+
+    // Legal paragraph
+    setFont('italic', 6);
+    const legalText = 'As a patient advocate, in accordance with the California Nursing Practice Act, this is to confirm that I/we notified you that, in my/our professional judgment, today\'s assignment is unsafe and places my/our patients at risk. As a result, the facility is responsible for any adverse effects on patient care. I/we will, under protest, attempt to carry out the assignment to the best of my/our ability.';
+    const legalLines = wrapText(legalText, CW, 6);
+    for (const line of legalLines) {
+      pdf.text(line, M, y + 2.5);
+      y += 2.5;
+    }
+    y += 1;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION II =====
+    setFont('bold', 9);
+    pdf.text('SECTION II - Action', M, y);
+    y += 4;
+    setFont('normal', 7);
+
+    pdf.text('Supervisor notified:', M, y);
+    pdf.text(getVal('supervisorName'), M + 32, y);
+    drawLine(M + 32, y + 1, M + CW * 0.6, y + 1, 0.2);
+    pdf.text('Date/Time:', M + CW * 0.62, y);
+    const supDT = getVal('supervisorDateTime');
+    pdf.text(supDT ? new Date(supDT).toLocaleString() : '', M + CW * 0.77, y);
+    drawLine(M + CW * 0.77, y + 1, W - M, y + 1, 0.2);
+    y += 5;
+
+    pdf.text('Supervisory response:', M, y);
+    drawLine(M + 33, y + 1, W - M, y + 1, 0.2);
+    const supResp = getVal('supervisorResponse');
+    if (supResp) {
+      setFont('normal', 6.5);
+      const respLines = wrapText(supResp, CW - 33, 6.5);
+      pdf.text(respLines[0] || '', M + 33, y);
+      for (let i = 1; i < respLines.length && i < 2; i++) {
+        y += 3.5;
+        pdf.text(respLines[i], M, y);
+        drawLine(M, y + 1, W - M, y + 1, 0.2);
+      }
+    }
+    y += 5;
+
+    setFont('normal', 7);
+    pdf.text('Other person notified:', M, y);
+    pdf.text(getVal('otherPersonName'), M + 35, y);
+    drawLine(M + 35, y + 1, M + CW * 0.6, y + 1, 0.2);
+    pdf.text('Date/Time:', M + CW * 0.62, y);
+    const othDT = getVal('otherPersonDateTime');
+    pdf.text(othDT ? new Date(othDT).toLocaleString() : '', M + CW * 0.77, y);
+    drawLine(M + CW * 0.77, y + 1, W - M, y + 1, 0.2);
+    y += 5;
+
+    pdf.text("Other person's response:", M, y);
+    drawLine(M + 38, y + 1, W - M, y + 1, 0.2);
+    const othResp = getVal('otherPersonResponse');
+    if (othResp) {
+      setFont('normal', 6.5);
+      const rLines = wrapText(othResp, CW - 38, 6.5);
+      pdf.text(rLines[0] || '', M + 38, y);
+    }
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION IIIa =====
+    setFont('bold', 9);
+    pdf.text('SECTION IIIa', M, y);
+    setFont('italic', 6);
+    pdf.text('See Title 22 and Title 16 provisions on back', M + 30, y);
+    y += 4;
+    setFont('normal', 7);
+    pdf.text('I am objecting to the aforementioned assignment on the grounds that: (check all that apply)', M, y);
+    y += 4;
+
+    const fontSize = 6.5;
+    setFont('normal', fontSize);
+
+    function objLine(id, text, indent) {
+      const ix = M + (indent || 0);
+      const nx = checkbox(ix, y, isChecked(id));
+      const lines = wrapText(text, W - M - nx, fontSize);
+      for (let i = 0; i < lines.length; i++) {
+        pdf.text(lines[i], nx, y + 1);
+        if (i < lines.length - 1) y += 3;
+      }
+      y += 3.5;
+    }
+
+    objLine('obj1', 'I was given an assignment where I did not receive or complete:');
+    objLine('obj1a', 'orientation to the unit', 8);
+    objLine('obj1b', 'training to competently perform my assigned duties and responsibilities', 8);
+    objLine('obj2', "I don't have current demonstrated competency");
+    objLine('obj3', 'I was given an assignment which posed a threat to the health and safety of my patients (explain in Section VI)');
+    objLine('obj4', 'Staffing/skill mix is/was insufficient to:');
+    objLine('obj4a', 'meet the individual patient care needs/requirements of my patients', 8);
+    objLine('obj4b', 'perform effective assessments of patients assigned to me', 8);
+    objLine('obj4c', 'meet the teaching/discharge needs identified by my patient\'s condition', 8);
+    objLine('obj4d', 'document during the shift leading to documenting post-shift', 8);
+    objLine('obj4e', 'provide breaks by a direct-care RN to prevent fatigue, accidents, and/or errors', 8);
+    objLine('obj5', 'The unit is/was staffed with unqualified:');
+    objLine('obj5a', 'licensed', 8);
+    objLine('obj5b', 'unlicensed', 8);
+    objLine('obj5c', 'certified staff', 8);
+    objLine('obj5d', 'personnel whose competency was not communicated to me', 8);
+    objLine('obj6', 'Direct patient care duties did not allow time for charge nurse duties, e.g. clinical supervision/coordination of care');
+    objLine('obj7', 'New patients were transferred or admitted to unit without adequate staff');
+    objLine('obj8', 'I was forced to work beyond my scheduled hours, e.g. mandatory overtime');
+    objLine('obj9', 'Other (explain in Section VI)');
+
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION IIIb =====
+    setFont('bold', 9);
+    pdf.text('SECTION IIIb - Working Conditions', M, y);
+    y += 4;
+    setFont('normal', 7);
+
+    const meal = getRadio('meal');
+    const brk = getRadio('break');
+    const ot = getRadio('overtime');
+
+    let bx = M;
+    pdf.text('Meal period missed?', bx, y);
+    bx += 35;
+    bx = checkbox(bx, y - 1, meal === 'yes'); pdf.text('Yes', bx, y); bx += 10;
+    bx = checkbox(bx, y - 1, meal === 'no'); pdf.text('No', bx, y); bx += 15;
+    pdf.text('Break missed?', bx, y); bx += 25;
+    bx = checkbox(bx, y - 1, brk === 'yes'); pdf.text('Yes', bx, y); bx += 10;
+    bx = checkbox(bx, y - 1, brk === 'no'); pdf.text('No', bx, y); bx += 15;
+    pdf.text('Overtime worked?', bx, y); bx += 28;
+    bx = checkbox(bx, y - 1, ot === 'yes'); pdf.text('Yes', bx, y); bx += 10;
+    bx = checkbox(bx, y - 1, ot === 'no'); pdf.text('No', bx, y);
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION IV =====
+    setFont('bold', 9);
+    pdf.text('SECTION IV - Type of Unit', M, y);
+    y += 4;
+    setFont('normal', 7);
+
+    pdf.text('Type of unit:', M, y);
+    pdf.text(getVal('unitType'), M + 25, y);
+    drawLine(M + 25, y + 1, M + CW * 0.5, y + 1, 0.2);
+
+    pdf.text('Patient classification system name:', M + CW * 0.52, y);
+    pdf.text(getVal('patientClass'), M + CW * 0.82, y);
+    drawLine(M + CW * 0.82, y + 1, W - M, y + 1, 0.2);
+    y += 5;
+
+    pdf.text('Census:', M, y);
+    pdf.text(getVal('census'), M + 14, y);
+    drawLine(M + 14, y + 1, M + 25, y + 1, 0.2);
+
+    const acuity = getRadio('acuity');
+    pdf.text('Acuity:', M + 30, y);
+    let ax = M + 44;
+    for (const level of ['Low', 'Medium', 'High', 'Extreme']) {
+      ax = checkbox(ax, y - 1, acuity === level);
+      pdf.text(level, ax, y);
+      ax += pdf.getTextWidth(level) + 4;
+    }
+    y += 5;
+
+    pdf.text('Staffing system variance (difference between patient acuity and actual staff provided):', M, y);
+    y += 3.5;
+    pdf.text(getVal('staffVariance'), M, y);
+    drawLine(M, y + 1, W - M, y + 1, 0.2);
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION V =====
+    setFont('bold', 9);
+    pdf.text('SECTION V - Patient Care Staffing Count', M, y);
+    y += 4;
+    setFont('normal', 7);
+
+    let sx = M;
+    pdf.text('Number of RNs:', sx, y);
+    pdf.text(getVal('numRNs'), sx + 27, y);
+    drawLine(sx + 27, y + 1, sx + 35, y + 1, 0.2);
+    sx += 40;
+    pdf.text('Number of LVNs:', sx, y);
+    pdf.text(getVal('numLVNs'), sx + 28, y);
+    drawLine(sx + 28, y + 1, sx + 36, y + 1, 0.2);
+    sx += 42;
+    pdf.text('Number of MAs:', sx, y);
+    pdf.text(getVal('numMAs'), sx + 27, y);
+    drawLine(sx + 27, y + 1, sx + 35, y + 1, 0.2);
+    sx += 40;
+    pdf.text('Number of Aides:', sx, y);
+    pdf.text(getVal('numAides'), sx + 28, y);
+    drawLine(sx + 28, y + 1, sx + 36, y + 1, 0.2);
+    y += 5;
+
+    const clerk = getRadio('clerk');
+    const lift = getRadio('lift');
+    const transport = getRadio('transport');
+
+    sx = M;
+    pdf.text('Clerk?', sx, y);
+    sx += 12;
+    sx = checkbox(sx, y - 1, clerk === 'yes'); pdf.text('Yes', sx, y); sx += 10;
+    sx = checkbox(sx, y - 1, clerk === 'no'); pdf.text('No', sx, y); sx += 18;
+    pdf.text('Lift team?', sx, y); sx += 18;
+    sx = checkbox(sx, y - 1, lift === 'yes'); pdf.text('Yes', sx, y); sx += 10;
+    sx = checkbox(sx, y - 1, lift === 'no'); pdf.text('No', sx, y); sx += 18;
+    pdf.text('Transport?', sx, y); sx += 18;
+    sx = checkbox(sx, y - 1, transport === 'yes'); pdf.text('Yes', sx, y); sx += 10;
+    sx = checkbox(sx, y - 1, transport === 'no'); pdf.text('No', sx, y);
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION VI =====
+    setFont('bold', 9);
+    pdf.text('SECTION VI - Brief Problem Statement', M, y);
+    y += 4;
+    setFont('normal', 6.5);
+    const probText = getVal('problemStatement');
+    if (probText) {
+      const pLines = wrapText(probText, CW, 6.5);
+      for (const line of pLines) {
+        pdf.text(line, M, y);
+        y += 3;
+      }
+    } else {
+      drawLine(M, y + 1, W - M, y + 1, 0.2); y += 4;
+      drawLine(M, y + 1, W - M, y + 1, 0.2); y += 4;
+    }
+    setFont('italic', 5.5);
+    pdf.text('(If more space is needed, attach additional information and make four copies to distribute)', M, y);
+    y += 2;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SECTION VII =====
+    setFont('bold', 9);
+    pdf.text('SECTION VII', M, y);
+    setFont('italic', 6);
+    pdf.text('Complete this section as appropriate. This may need to be filled out immediately at the end of your shift, if appropriate.', M + 25, y);
+    y += 4;
+    setFont('normal', 6.5);
+    pdf.text('Patient care affected. Nursing care not done/not done effectively, e.g. assessment, evaluation, personal care,', M, y);
+    y += 3;
+    pdf.text('treatments, teaching, charge duties, transfers/admissions delayed, etc. Potential/actual hazard that resulted from this situation:', M, y);
+    y += 4;
+    const careText = getVal('patientCareAffected');
+    if (careText) {
+      const cLines = wrapText(careText, CW, 6.5);
+      for (const line of cLines) {
+        pdf.text(line, M, y);
+        y += 3;
+      }
+    } else {
+      drawLine(M, y + 1, W - M, y + 1, 0.2); y += 4;
+      drawLine(M, y + 1, W - M, y + 1, 0.2); y += 4;
+    }
+    y += 2;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 3;
+
+    // ===== SIGNATURES =====
+    setFont('bold', 8);
+    pdf.text('SIGNATURES', M, y);
+    y += 4;
+
+    for (const name of nurses) {
+      setFont('normal', 7);
+      pdf.text(name + ':', M, y);
+      // Draw signature if exists
+      const sigEntry = signaturePads[name];
+      if (sigEntry && !sigEntry.pad.isEmpty()) {
+        const sigData = sigEntry.pad.toDataURL('image/png');
+        pdf.addImage(sigData, 'PNG', M + 40, y - 5, 50, 15);
+        // Timestamp
+        const tsEl = document.getElementById('ts-' + sigEntry.id);
+        if (tsEl && tsEl.textContent) {
+          setFont('italic', 6);
+          pdf.text(tsEl.textContent, M + 95, y);
+        }
+      }
+      drawLine(M + 40, y + 1, M + 90, y + 1, 0.2);
+      pdf.text('Date/Time:', M + 95, y);
+      drawLine(M + 110, y + 1, W - M, y + 1, 0.2);
+      y += 8;
+    }
+
+    // Footer
+    y = H - 8;
+    setFont('italic', 6);
+    pdf.text('REV: 5/2019', M, y);
+    pdf.text('Copy to Supervisor', W / 2, y, { align: 'center' });
+
+    // Save and download
     const pdfBase64 = pdf.output('datauristring');
 
     const archive = JSON.parse(localStorage.getItem('ado_archive') || '[]');
     archive.unshift({
       id: Date.now(),
       date: dateStr,
-      facility: facility,
+      facility: facility || 'Unknown Facility',
       nurses: [...nurses],
       pdf: pdfBase64
     });
 
     try {
       localStorage.setItem('ado_archive', JSON.stringify(archive));
-    } catch(storageErr) {
-      // If localStorage is full, still offer the download
-      console.warn('localStorage full, downloading directly');
+    } catch(e) {
+      console.warn('localStorage full');
     }
 
-    // Auto-download the PDF
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'ADO_' + facility.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+    a.download = 'ADO_' + (facility || 'Form').replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
