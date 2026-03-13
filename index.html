@@ -1047,14 +1047,31 @@ function resizeSignatureCanvases() {
   Object.values(signaturePads).forEach(({ pad, id }) => {
     const canvas = document.getElementById(id);
     if (canvas) {
-      const data = pad.toData();
+      // Save as image to preserve visual fidelity across resize/rotation
+      const isEmpty = pad.isEmpty();
+      let imgData = null;
+      if (!isEmpty) {
+        imgData = pad.toDataURL('image/png');
+      }
       resizeCanvas(canvas);
-      pad.fromData(data);
+      if (imgData) {
+        const img = new Image();
+        img.onload = function() {
+          const ctx = canvas.getContext('2d');
+          const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          ctx.scale(1/ratio, 1/ratio);
+          // Scale signature to fit new canvas size
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.scale(ratio, ratio);
+        };
+        img.src = imgData;
+      }
     }
   });
 }
 
 window.addEventListener('resize', resizeSignatureCanvases);
+window.addEventListener('orientationchange', () => setTimeout(resizeSignatureCanvases, 300));
 
 // ========== FORM SUBMISSION ==========
 async function submitForm() {
@@ -1510,23 +1527,30 @@ async function submitForm() {
 
     for (const name of nurses) {
       setFont('normal', 7);
-      pdf.text(name + ':', M, y);
-      // Draw signature if exists
+      pdf.text(name, M, y);
+      y += 2;
+
+      // Signature image
       const sigEntry = signaturePads[name];
       if (sigEntry && !sigEntry.pad.isEmpty()) {
         const sigData = sigEntry.pad.toDataURL('image/png');
-        pdf.addImage(sigData, 'PNG', M + 40, y - 5, 50, 15);
-        // Timestamp
-        const tsEl = document.getElementById('ts-' + sigEntry.id);
-        if (tsEl && tsEl.textContent) {
-          setFont('italic', 6);
-          pdf.text(tsEl.textContent, M + 95, y);
-        }
+        // Draw signature scaled to fit the line area
+        pdf.addImage(sigData, 'PNG', M, y, 70, 18);
       }
-      drawLine(M + 40, y + 1, M + 90, y + 1, 0.2);
-      pdf.text('Date/Time:', M + 95, y);
-      drawLine(M + 110, y + 1, W - M, y + 1, 0.2);
-      y += 8;
+      // Signature line
+      drawLine(M, y + 18, M + 70, y + 18, 0.3);
+      setFont('italic', 5.5);
+      pdf.text('Signature', M + 25, y + 21);
+
+      // Date/Time on the right side, vertically centered with sig
+      const tsEl = sigEntry ? document.getElementById('ts-' + sigEntry.id) : null;
+      const tsText = (tsEl && tsEl.textContent) ? tsEl.textContent.replace('Signed: ', '') : '';
+      setFont('normal', 7);
+      pdf.text('Date/Time:', M + 80, y + 10);
+      pdf.text(tsText, M + 102, y + 10);
+      drawLine(M + 80, y + 18, W - M, y + 18, 0.3);
+
+      y += 25;
     }
 
     // Footer
