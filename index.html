@@ -1535,6 +1535,153 @@ async function submitForm() {
     pdf.text('REV: 5/2019', M, y);
     pdf.text('Copy to Supervisor', W / 2, y, { align: 'center' });
 
+    // ===== PAGE 2: INSTRUCTIONS =====
+    pdf.addPage([215.9, 355.6]);
+    y = M;
+
+    setFont('bold', 12);
+    pdf.text('INSTRUCTIONS', W / 2, y + 5, { align: 'center' });
+    y += 10;
+
+    setFont('normal', 7);
+    const instrParas = [
+      'The purpose of this enforcement document/form is to notify hospital supervision that you have been given an assignment which in your independent professional judgment is unsafe for your patients. This form will document the situation. CNA/NNU Professional Practice Committee (PPC) will use it to facilitate resolution of the problem.',
+      '',
+      'PLEASE PRINT',
+      '',
+      'One or more RNs may complete this form. Check all appropriate boxes, more than one may apply. Please do not forget to complete name of your unit/department and title of person making assignment. Complete to the best of your knowledge. Mark the census at the time of your objection. Check acuity box you think is appropriate. We need your assessment.',
+      '',
+      'Complete Section VI to explain the potential threat to the health and safety of your patient(s) or if you think the situation cannot be explained in Section III, or if you think additional information is relevant.',
+      '',
+      'You must notify your supervisor or the "person in charge," not the charge nurse. Please complete both name and title of the supervisor. Please complete the section labeled supervisory response. Please complete the section, "Other persons notified," if you notified the staffing office, a physician, or any other person.',
+      '',
+      'Give copy #1 to your supervisor. Give copy #2 to your facility CNA/NNU PPC. Send copy #3 to your labor representative at their office (addresses below). Retain copy #4 for yourself.',
+    ];
+
+    for (const para of instrParas) {
+      if (para === '') { y += 2; continue; }
+      if (para === 'PLEASE PRINT') {
+        setFont('bold', 8);
+        pdf.text(para, M, y);
+        setFont('normal', 7);
+        y += 4;
+        continue;
+      }
+      const pLines = wrapText(para, CW, 7);
+      for (const line of pLines) {
+        pdf.text(line, M, y);
+        y += 3.2;
+      }
+    }
+
+    y += 4;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 4;
+
+    // Title 22
+    setFont('bold', 8);
+    pdf.text('TITLE 22 \u2014 DIVISION 5. LICENSING AND CERTIFICATION OF HEALTH FACILITIES', M, y);
+    y += 3.5;
+    pdf.text('CHAPTER 7. PRIMARY CARE CLINICS', M, y);
+    y += 5;
+
+    setFont('bold', 7.5);
+    pdf.text('SECTION 75028. BASIC SERVICES \u2014 NURSING STAFF', M, y);
+    y += 4;
+    setFont('normal', 6.5);
+    const t22_75028 = [
+      '(a) Every medical clinic shall employ a registered nurse responsible for nursing services.',
+      '(b) A licensed nurse shall be present whenever nursing services are provided.',
+      '(c) Qualified nursing personnel shall be employed to meet the needs of the particular clinic. The number and type of patients shall be taken into consideration.',
+      '(d) Employees of the medical clinic who provide direct patient care shall be under the supervision of a registered nurse or physician.',
+      '(e) Where a medical clinic demonstrates to the Department that a registered nurse cannot be recruited, the clinic may request approval from the Department to designate a licensed vocational nurse to be responsible for nursing services, with a provision for consultation from a registered nurse.',
+    ];
+    for (const item of t22_75028) {
+      const lines = wrapText(item, CW, 6.5);
+      for (const line of lines) { pdf.text(line, M, y); y += 3; }
+      y += 1;
+    }
+    y += 2;
+
+    setFont('bold', 7.5);
+    pdf.text('SECTION 75029. BASIC SERVICES \u2014 OTHER HEALTH PERSONNEL', M, y);
+    y += 4;
+    setFont('normal', 6.5);
+    const t22_75029 = [
+      '(a) Health personnel shall be employed to furnish the preventive, diagnostic and therapeutic services prescribed for patients accepted for care by the clinic. Such health personnel shall be qualified in accordance with current legal, professional and technical standards and shall be appropriately licensed, registered or certified where required.',
+      '(b) The professional director shall ensure that, in addition to meeting the licensing, certification or other legal requirements, all health personnel are qualified by training and experience to perform those services they are assigned to provide.',
+    ];
+    for (const item of t22_75029) {
+      const lines = wrapText(item, CW, 6.5);
+      for (const line of lines) { pdf.text(line, M, y); y += 3; }
+      y += 1;
+    }
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 4;
+
+    // Title 16
+    setFont('bold', 8);
+    pdf.text('TITLE 16 \u2014 Chapter 14  1443.5. STANDARDS OF COMPETENT PERFORMANCE', M, y);
+    y += 3.5;
+    setFont('italic', 6.5);
+    pdf.text('EXCERPT FROM CALIFORNIA CODE OF REGULATIONS', M, y);
+    y += 5;
+    setFont('normal', 6.5);
+    const t16intro = 'A registered nurse shall be considered to be competent when he/she consistently demonstrates the ability to transfer scientific knowledge from social, biological and physical sciences in applying the nursing process, as follows:';
+    const t16iLines = wrapText(t16intro, CW, 6.5);
+    for (const line of t16iLines) { pdf.text(line, M, y); y += 3; }
+    y += 2;
+
+    const t16bullets = [
+      'Formulates a nursing diagnosis through observation of the client\'s physical condition and behavior, and through interpretation of information obtained from the client and others, including the health team.',
+      'Formulates a care plan, in collaboration with the client, which ensures that direct and indirect nursing care services provide for the client\'s safety, comfort, hygiene, and protection, and for disease prevention and restorative measures.',
+      'Performs skills essential to the kind of nursing action to be taken, explains the health treatment to the client and family and teaches the client and family how to care for the client\'s health needs.',
+      'Delegates tasks to subordinates based on the legal scopes of practice of the subordinates and on the preparation and capability needed in the tasks to be delegated, and effectively supervises nursing care being given by subordinates.',
+      'Evaluates the effectiveness of the care plan through observation of the client\'s physical condition and behavior, signs and symptoms of illness, and reactions to treatment and through communication with the client and the health team members, and modifies the plan as needed.',
+      'Acts as the client\'s advocate, as circumstances require by initiating action to improve healthcare or to change decisions or activities which are against the interests or wishes of the client, and by giving the client the opportunity to make informed decisions about healthcare before it is provided.',
+    ];
+    for (const bullet of t16bullets) {
+      pdf.text('\u2022', M + 2, y);
+      const bLines = wrapText(bullet, CW - 8, 6.5);
+      for (const line of bLines) { pdf.text(line, M + 6, y); y += 3; }
+      y += 1.5;
+    }
+
+    y += 3;
+    drawLine(M, y, W - M, y, 0.5);
+    y += 4;
+
+    // CNA/NNU Office Addresses
+    setFont('bold', 8);
+    pdf.text('Send COPY #3 to your CNA/NNU labor representative at their office:', M, y);
+    y += 5;
+
+    setFont('normal', 6.5);
+    const offices = [
+      { city: 'OAKLAND', addr: '155 Grand Ave., Suite 100, Oakland CA 94612', phone: '510-273-2200' },
+      { city: 'SACRAMENTO', addr: '980 9th Street, Suite 700, Sacramento CA 95814', phone: '916-446-5021' },
+      { city: 'SAN JOSE', addr: '1871 The Alameda, Suite 300, San Jose CA 95126', phone: '408-920-0290' },
+      { city: 'FRESNO', addr: '7575 N. Del Mar Ave., Suite 103, Fresno CA 93711', phone: '559-437-9996' },
+      { city: 'LOS ANGELES', addr: '225 W. Broadway, Suite 500, Glendale CA 91204', phone: '818-240-1900' },
+      { city: 'SAN DIEGO', addr: '3160 Camino del Rio S., Suite 301, San Diego CA 92108', phone: '619-516-4917' },
+    ];
+
+    // Two columns
+    const colW = CW / 2 - 5;
+    const startY = y;
+    for (let i = 0; i < offices.length; i++) {
+      const col = i < 3 ? 0 : 1;
+      const row = i % 3;
+      const ox = M + col * (colW + 10);
+      const oy = startY + row * 14;
+      setFont('bold', 7);
+      pdf.text(offices[i].city, ox, oy);
+      setFont('normal', 6.5);
+      pdf.text(offices[i].addr, ox, oy + 4);
+      pdf.text(offices[i].phone, ox, oy + 8);
+    }
+
     // Save and download
     const pdfBase64 = pdf.output('datauristring');
 
